@@ -1,15 +1,21 @@
+import functools
 import random
 import re
 import string
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypeVar
 
 import tiktoken
 import torch
+from IPython.display import Markdown, display
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, Dataset
+from typing_extensions import ParamSpec
 
 from llm_from_scratch.chapter_02.protocols import TokenizerProtocol
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class ExpectedGPTDatasetV1(Dataset[tuple[Tensor, Tensor]]):
@@ -41,26 +47,44 @@ class ExpectedGPTDatasetV1(Dataset[tuple[Tensor, Tensor]]):
         return self.input_ids[index], self.target_ids[index]
 
 
-def _input_chunk(token_ids: list[int], start_index: int, context_size: int):
-    return token_ids[start_index : start_index + context_size]
+def test_on_ipython(func: Callable[P, R]) -> Callable[P, R]:
+    @functools.wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        try:
+            result = func(*args, **kwargs)
+            display(
+                Markdown(
+                    f"##### <span style='color:green'>✅ `{func.__name__}` Passed</span>"
+                )
+            )
+            return result
+        except AssertionError as e:
+            display(
+                Markdown(
+                    f"##### <span style='color:red'>❌ `{func.__name__}` Failed</span>"
+                )
+            )
+
+            raise e
+
+    return wrapper
 
 
-def _target_chunk(token_ids: list[int], start_index: int, context_size: int):
-    return token_ids[start_index + 1 : start_index + context_size + 1]
-
-
+@test_on_ipython
 def test_document_loaded_correctly(document: str):
     expected = _load_document()
 
     assert document == expected, "Document not loaded correctly"
 
 
+@test_on_ipython
 def test_document_tokenized_correctly(tokens: list[str]):
     expected = _tokenized_document(_load_document())
 
     assert tokens == expected, "Document not tokenized correctly"
 
 
+@test_on_ipython
 def test_vocabulary_created_correctly(vocabulary: dict[str, int]):
     expected = _vocabulary_from_tokenized_document(
         _tokenized_document(_load_document())
@@ -69,6 +93,7 @@ def test_vocabulary_created_correctly(vocabulary: dict[str, int]):
     assert vocabulary == expected, "Vocabulary not created correctly"
 
 
+@test_on_ipython
 def test_encode_implemented_correctly(
     encode: Callable[[str, dict[str, int]], list[int]]
 ):
@@ -81,6 +106,7 @@ def test_encode_implemented_correctly(
     ), "Encode not implemented correctly"
 
 
+@test_on_ipython
 def test_decode_implemented_correctly(
     decode: Callable[[list[int], dict[str, int]], str]
 ):
@@ -95,6 +121,7 @@ def test_decode_implemented_correctly(
     ), "Decode not implemented correctly"
 
 
+@test_on_ipython
 def test_simple_tokenizer_v1_implemented_correctly(
     SimpleTokenizerV1: type[TokenizerProtocol],
 ):
@@ -115,6 +142,7 @@ def test_simple_tokenizer_v1_implemented_correctly(
     ), "SimpleTokenizerV1 not implemented correctly"
 
 
+@test_on_ipython
 def test_extended_vocabulary_created_correctly(extended_vocabulary: dict[str, int]):
     tokenized_document = _tokenized_document(_load_document())
 
@@ -123,6 +151,7 @@ def test_extended_vocabulary_created_correctly(extended_vocabulary: dict[str, in
     ), "Extended vocabulary not created correctly"
 
 
+@test_on_ipython
 def test_simple_tokenizer_v2_implemented_correctly(
     SimpleTokenizerV2: type[TokenizerProtocol],
 ):
@@ -145,6 +174,7 @@ def test_simple_tokenizer_v2_implemented_correctly(
     ), "SimpleTokenizerV2 not implemented correctly"
 
 
+@test_on_ipython
 def test_input_chunk_and_target_chunk_created_correctly(
     input_chunk_and_target_chunk: Callable[
         [list[int], int, int], tuple[list[int], list[int]]
@@ -163,6 +193,7 @@ def test_input_chunk_and_target_chunk_created_correctly(
     )
 
 
+@test_on_ipython
 def test_gpt_dataset_v1(
     GPTDatasetV1: type[Dataset[tuple[Tensor, Tensor]]],
 ):
@@ -197,6 +228,7 @@ def test_gpt_dataset_v1(
     ), "GPTDatasetV1 not implemented correctly"
 
 
+@test_on_ipython
 def test_simple_embedding(embedding: nn.Embedding):
     torch.manual_seed(42)
     expected = nn.Embedding(6, 3)
@@ -215,6 +247,7 @@ def test_token_embedding(embedding: nn.Embedding):
     ), "Token embedding not implemented correctly"
 
 
+@test_on_ipython
 def test_token_embeddings(token_embeddings: Tensor):
     torch.manual_seed(42)
     embedding = nn.Embedding(50257, 256)
@@ -229,6 +262,7 @@ def test_token_embeddings(token_embeddings: Tensor):
     ), "Token embeddings not implemented correctly"
 
 
+@test_on_ipython
 def test_position_embedding(embedding: nn.Embedding):
     torch.manual_seed(42)
     expected = nn.Embedding(4, 256)
@@ -238,6 +272,7 @@ def test_position_embedding(embedding: nn.Embedding):
     ), "Position embedding not implemented correctly"
 
 
+@test_on_ipython
 def test_position_embeddings(position_embeddings: Tensor):
     torch.manual_seed(42)
     embedding = nn.Embedding(4, 256)
@@ -249,6 +284,7 @@ def test_position_embeddings(position_embeddings: Tensor):
     ), "Position embeddings not implemented correctly"
 
 
+@test_on_ipython
 def test_input_embeddings(input_embeddings: Tensor):
     torch.manual_seed(42)
     token_embedding = nn.Embedding(50257, 256)
@@ -355,3 +391,11 @@ def _shuffled_document(document: str):
     splitted = re.split(r'([,.:;?_!"()\']|--|\s)', document)
     random.shuffle(splitted)
     return " ".join(splitted)
+
+
+def _input_chunk(token_ids: list[int], start_index: int, context_size: int):
+    return token_ids[start_index : start_index + context_size]
+
+
+def _target_chunk(token_ids: list[int], start_index: int, context_size: int):
+    return token_ids[start_index + 1 : start_index + context_size + 1]
