@@ -1,26 +1,16 @@
-[tool.poetry]
-name = "llm-from-scratch"
-version = "0.1.0"
-description = ""
-authors = ["Minjae Gwon <beta.underalpha@gmail.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-jupyter = "^1.0.0"
-torch = "^2.3.1"
-tiktoken = "^0.7.0"
-nbconvert = "^7.16.4"
-markdown = "^3.6"
-beautifulsoup4 = "^4.12.3"
-numpy = "^2.0.0"
-
-
-[tool.poetry.group.dev.dependencies]
-black = {extras = ["jupyter"], version = "^24.4.2"}
-isort = "^5.13.2"
-nbformat = "^5.10.4"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-from-scratch"
+version = "0.0.1"
+dependencies = [
+    "jupyter",
+    "torch",
+    "tiktoken",
+    "numpy",
+    "black[jupyter]",
+    "isort",
+]
+requires-python = ">=3.11"
