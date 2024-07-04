@@ -238,6 +238,7 @@ def test_simple_embedding(embedding: nn.Embedding):
     ), "Simple embedding not implemented correctly"
 
 
+@test_on_ipython
 def test_token_embedding(embedding: nn.Embedding):
     torch.manual_seed(42)
     expected = nn.Embedding(50257, 256)
