@@ -58,7 +58,7 @@ def test_on_ipython(func: Callable[P, R]) -> Callable[P, R]:
                 )
             )
             return result
-        except AssertionError as e:
+        except Exception as e:
             display(
                 Markdown(
                     f"##### <span style='color:red'>❌ `{func.__name__}` Failed</span>"
