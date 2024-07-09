@@ -278,10 +278,10 @@ def test_position_embeddings(position_embeddings: Tensor):
     torch.manual_seed(42)
     embedding = nn.Embedding(4, 256)
 
-    position_embeddings = embedding(torch.arange(4))
+    expected = embedding(torch.arange(4))
 
     assert torch.equal(
-        position_embeddings, position_embeddings
+        position_embeddings, expected
     ), "Position embeddings not implemented correctly"
 
 
